@@ -13,6 +13,7 @@ const httpServer = app.listen(PORT, () =>
 
 const io = new Server(httpServer);
 
+//Configuracion Handlebars
 app.engine(
   "hbs",
   handlebars.engine({
@@ -28,6 +29,20 @@ app.use(express.static(__dirname + "/public"));
 
 app.use("/", viewsRouter);
 
+const messages = []
+
 io.on("connection", (socket) => {
   console.log("Nuevo usuario conectado");
+
+  socket.on("message", (data) => {
+    console.log(data)
+    messages.push(data)
+    io.emit("messages", messages) //se envía a todos
+  })
+
+  socket.emit("messages", messages)
+  
+  socket.on("userLoggedIn", (data) => {
+    socket.broadcast.emit("userNotification", data)
+  })
 });
